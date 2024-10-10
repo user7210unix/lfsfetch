@@ -16,7 +16,7 @@ Packages: 287
 Shell: zsh
 
 
-**installation:**
+installation:
 git clone https://github.com/user7210unix/lfsfetch.git
 
 cd lfsfetch
