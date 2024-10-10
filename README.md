@@ -17,12 +17,9 @@ Shell: zsh
 
 
 installation:
+
 git clone https://github.com/user7210unix/lfsfetch.git
-
 cd lfsfetch
-
 sudo make
-
 sudo make install
-
 lfsfetch
