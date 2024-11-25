@@ -13,7 +13,6 @@ cyn="\e[36m"
 blu="\e[34m"
 prp="\e[35m"
 rst="\e[0m"
-#set="│┌ ┐┘─┐  └│┘└ ┌─ ├"
 
 color-echo() {  # print with colors
       printf "\e[22C%s$cyn%-12s  $rst%s\n" "$1" "$2" "$3"
@@ -48,16 +47,12 @@ print-cpu() {
 }
 
 print-disk() {
-   # field 2 on line 2 is total, field 3 on line 2 is used
    disk=$(df -h / | awk 'NR==2 {total=$2; used=$3; print used" / "total}')
    
    color-echo "Disk" "$disk"
 }
 
 print-mem() {
-   # field 2 on line 2 is total, field 3 on line 2 is used (in new format)
-   # field 2 on line 2 is total, field 3 on line 3 is used (in old format)
-   # use -m because slackware does not have -h
 
    if [[ $(free -m) =~ "buffers" ]]; then # using old format
       mem=$(free -m | awk 'NR==2 {total=$2} NR==3 {used=$3; print used"M / "total"M"}')
@@ -97,12 +92,6 @@ print-distro() {
    fi
 }
 
-#print-packages() {
-   #color-echo "└ " "Packages" "$(dpkg -l | grep -c '^ii') (dpkg)"
-   #color-echo "└ " "Packages" "$(sqlite3 /var/cache/dnf/packages.db 'SELECT count(pkg) FROM installed') (dnf) / $(flatpak list | wc -l) (flatpak)"
-   #color-echo "└ " "tarballs" "$(sqlite3 /var/cache/scratchpkg/sources/ 'SELECT count(package_name) FROM installed') (pfstool)"
-#}
-
 print-resolution() {
    if [[ $DISPLAY ]]; then
       res=$(xwininfo -root | grep 'geometry' | awk '{print $2}' | cut -d+ -f1)
@@ -118,13 +107,11 @@ print-resolution() {
 }
 
 print-colors() {
-   #colors=($(xrdb -query | sed -n 's/.*color\([0-9]\)/\1/p' | sort -nu | cut -f2))
 
    printf "\e[%bC" "31" 
    for i in {0..7}; do echo -en "\e[$((30+$i))m\uf111 ${colors[i]} \e[0m"; done
    echo
-   #printf "\e[%bC" "31" 
-   #for i in {8..15}; do echo -en "\e[$((82+$i))m\uf111 ${colors[i]} \e[0m"; done
+
 }
 
 print-image() {
@@ -146,9 +133,6 @@ print-image() {
    fi
 }
 
-# Main function
-#echo -e "$prp$USER@$HOSTNAME$rst\n\n"
-
 print-image $1
 
 printf "\e[21C%s\n" "System:"
@@ -156,9 +140,6 @@ print-distro
 print-kernel
 print-cpu
 print-mem
-#print-tarballs
-
-#printf "\e[21C%s\n" "Session:"
 print-wm
 print-bar
 print-resolution
