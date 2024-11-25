@@ -16,7 +16,7 @@
   <p style="font-size: 19px; line-height: 1.6; color: #7c3f00;">
     Below is a preview of my fetch programm wich can be used for Linux From Scratch or can be modified for specifiec needs.
   </p>
-  <img src="pictures/fetch.png" alt="Fetch Preview" width="600" style="display: block; margin: 29px auto; border: 2px solid #555; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+  <img src="pictures/fetch.png" alt="Fetch Preview" width="900" style="display: block; margin: 29px auto; border: 2px solid #555; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
 </div>
 
 ---
