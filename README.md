@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🌟 <strong>𝗟𝗙𝗦-𝗙𝗘𝗧𝗖𝗛</strong> 🌟</h1>
+  <h1>🐧 <strong>𝗟𝗙𝗦-𝗙𝗘𝗧𝗖𝗛</strong> 🐧</h1>
 </div>
 
 <div align="center">
