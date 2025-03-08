@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# simple screen information script
+# just a chill little script to show some system info
 
 wms=(berry awesome hyprland fusionwm dwm openbox twobwm pekwm)
 
-# define colors for color-echo
+# setting up some colors to make it look nice
 red="\e[31m"
 grn="\e[32m"
 ylw="\e[33m"
@@ -13,88 +13,116 @@ blu="\e[34m"
 prp="\e[35m"
 rst="\e[0m"
 
-color-echo() {  # print with colors
+# little helper to print stuff with colors, keeps it fancy
+color-echo() {
    printf "$red$1$cyn%10s : $rst$3\n" "$2"
 }
 
-
+# grabs the kernel info, nice and simple
 print-kernel() {
    color-echo "$1" "Kernel" "$(uname -smr)"
 }
 
+# figures out how long the system's been awake
 print-uptime() {
    up=$(</proc/uptime)
-   up=${up//.*}                # string before first . is seconds
-   days=$((${up}/86400))       # seconds divided by 86400 is days
-   hours=$((${up}/3600%24))    # seconds divided by 3600 mod 24 is hours
-   mins=$((${up}/60%60))       # seconds divided by 60 mod 60 is mins
+   up=${up//.*}                # just grab the seconds, ditch the decimals
+   days=$((${up}/86400))       # how many days from all those seconds
+   hours=$((${up}/3600%24))    # leftover hours after days
+   mins=$((${up}/60%60))       # and the minutes
    
    color-echo "$1" "Uptime" "$(echo $days'd '$hours'h '$mins'm')"
 }
 
+# shows what shell you're hanging out in
 print-shell() {
    color-echo "$1" "Shell" $SHELL
 }
 
+# digs out your CPU name from the system
 print-cpu() {
    cpu=$(grep -m1 -i 'model name' /proc/cpuinfo)
-
-   color-echo "$1" "CPU" "${cpu#*: }" # everything after colon is processor name
+   color-echo "$1" "CPU" "${cpu#*: }" # just the name, skip the "model name: " part
 }
 
+# checks how much disk space you’ve used up
 print-disk() {
-   # field 2 on line 2 is total, field 3 on line 2 is used
+   # grabbing total and used space from df, line 2 has the goods
    disk=$(df -h / | awk 'NR==2 {total=$2; used=$3; print used" / "total}')
-   
    color-echo "$1" "Disk" "$disk"
 }
 
+# shows memory usage, handles old and new free command styles
 print-mem() {
-   # field 2 on line 2 is total, field 3 on line 2 is used (in new format)
-   # field 2 on line 2 is total, field 3 on line 3 is used (in old format)
-   # use -m because slackware does not have -h
-
-   if [[ $(free -m) =~ "buffers" ]]; then # using old format
+   if [[ $(free -m) =~ "buffers" ]]; then # old school format
       mem=$(free -m | awk 'NR==2 {total=$2} NR==3 {used=$3; print used"M / "total"M"}')
-   else # using new format
+   else # newer format, keeps it simple
       mem=$(free -m | awk 'NR==2 {total=$2} NR==2 {used=$3; print used"M / "total"M"}')
    fi
-
    color-echo "$1" "Mem" "$mem"
 }
 
+# hunts down which window manager you’re rocking
 print-wm() {
-   for wm in ${wms[@]}; do          # pgrep through wmname array
-      pid=$(pgrep -x -u $USER $wm) # if found, this wmname has running process
+   for wm in ${wms[@]}; do          # loops through our list of WMs
+      pid=$(pgrep -x -u $USER $wm) # checks if it’s running under your name
    if [[ "$pid" ]]; then
-      color-echo "$1" "WM" $wm
+      color-echo "$1" "WM" $wm     # found one, let’s show it
       break
    fi
 done
 }
 
+# pulls your distro name if it’s there
 print-distro() {
    [[ -e /etc/os-release ]] && source /etc/os-release
    if [[ -n "$PRETTY_NAME" ]]; then
       color-echo "$1" "OS" "$PRETTY_NAME"
    else
-      color-echo "$1" "OS" "not found"
+      color-echo "$1" "OS" "not found" # oops, no distro info
    fi
 }
 
+# counts packages in a lazy way
 print-packages() {
-   color-echo "$1"  "Packages" "$(ls -1 /home/user/sources/ | wc -l) (pfstool)"
+   color-echo "$1" "Packages" "$(ls -1 /home/user/sources/ | wc -l) (pfstool)"
 }
 
+# counts LFS tarballs if you’ve got ‘em
+print-lfs-sources() {
+   local lfs_dir="/mnt/lfs/sources" # where LFS usually keeps its stuff
+   if [[ -d "$lfs_dir" ]]; then
+      local count=$(ls -1 "$lfs_dir"/*.tar* 2>/dev/null | wc -l) # count those tarballs
+      color-echo "$1" "LFS Sources" "$count tarballs"
+   else
+      color-echo "$1" "LFS Sources" "directory not found" # no LFS? no worries
+   fi
+}
+
+# figures out what init system is running the show
+print-init() {
+   if [[ -L /sbin/init && $(readlink /sbin/init) =~ "systemd" ]]; then
+      color-echo "$1" "Init" "systemd" # systemd’s the boss here
+   elif [[ -f /sbin/init && $(file /sbin/init) =~ "SysV" ]]; then
+      color-echo "$1" "Init" "sysVinit" # good ol’ sysVinit
+   elif pidof runit >/dev/null; then
+      color-echo "$1" "Init" "runit" # runit’s keeping things rolling
+   elif pidof s6-supervise >/dev/null; then
+      color-echo "$1" "Init" "s6" # s6 is in charge
+   else
+      color-echo "$1" "Init" "something else, not sure what" # who knows what’s running!
+   fi
+}
+
+# grabs your screen resolution
 print-resolution() {
    res=$(xwininfo -root | grep 'geometry' | awk '{print $2}' | cut -d+ -f1)
-   
    color-echo "$1" "Resolution" $res
 }
 
+# shows off your terminal colors, looks dope
 print-colors() {
    xrdb -load $HOME/.Xdefaults
-
    colors=($(xrdb -query | sed -n 's/.*color\([0-9]\)/\1/p' | sort -nu | cut -f2))
 
    echo -e "\e[1;37m
@@ -104,18 +132,9 @@ print-colors() {
    echo
    for i in {8..15}; do echo -en "\e[1;$((22+$i))m █ ${colors[i]} \e[0m"; done
    echo -e "\n"
-
-#   NAMES=('black' 'red' 'green' 'yellow' 'blue' 'magenta' 'cyan' 'white')
-#   for f in {0..7}; do
-#      echo -en "\033[m\033[$(($f+30))m ${NAMES[$f]} " # normal colors
-#   done
-#   echo
-#   for f in {0..7}; do
-#      echo -en "\033[m\033[1;$(($f+30))m ${NAMES[$f]} " # bold colors
-#   done
-#   echo -e "$rst\n"
 }
 
+# let’s roll with the output
 echo
 print-distro      ' 	           '
 print-kernel      '  █     █▀▀▀  █▀▀▀█ '
@@ -123,7 +142,8 @@ print-cpu         '  █     █▀▀▀  ▀▀▀▄▄ '
 print-mem         '  █▄▄█  █     █▄▄▄█ '
 print-shell       '                    '
 print-wm          '      	       '
+print-lfs-sources '                    '
+print-init        '                    '  # tossing in the init system check here
 
 echo
 #print-colors
-
