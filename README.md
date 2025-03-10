@@ -12,5 +12,5 @@
 </div>
 
 <div align="center">
-  <img src="pictures/fetch1.png" alt="Fetch Preview" width="900" style="display: block; margin: 29px auto; border: 2px solid #555; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+  <img src="pictures/fetch.png" alt="Fetch Preview" width="900" style="display: block; margin: 29px auto; border: 2px solid #555; border-radius: 12px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
 </div>
