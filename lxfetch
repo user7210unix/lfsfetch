@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+import platform
+import psutil
+import os
+import time
+from colorama import init, Fore, Style
+import re
+
+# Initialize colorama for colored output
+init()
+
+# ASCII art for LxOS
+LXOS_LOGO = [
+    f"{Fore.BLUE} ___          ___    ___ ________  ________      ",
+    f"{Fore.BLUE}|\\  \\        |\\  \\  /  /|\\   __  \\|\\   ____\\     ",
+    f"{Fore.BLUE}\\ \\  \\       \\ \\  \\/  / | \\  \\|\\  \\ \\  \\___|_    ",
+    f"{Fore.BLUE} \\ \\  \\       \\ \\    / / \\ \\  \\\\\\  \\ \\_____  \\   ",
+    f"{Fore.BLUE}  \\ \\  \\____   /     \\/   \\ \\  \\\\\\  \\|____|\\  \\  ",
+    f"{Fore.BLUE}   \\ \\_______\\/  /\\   \\    \\ \\_______\\____\\_\\  \\ ",
+    f"{Fore.BLUE}    \\|_______/__/ /\\ __\\    \\|_______|\\_________\\",
+    f"{Fore.BLUE}             |__|/ \\|__|             \\|_________|",
+    f"{Fore.BLUE}                                                ",
+    f"{Fore.RESET}"
+]
+
+def get_os_info():
+    """Detect LxOS from /etc/os-release"""
+    try:
+        if os.path.exists("/etc/os-release"):
+            with open("/etc/os-release", "r") as f:
+                os_info = {}
+                for line in f:
+                    if line.strip() and '=' in line:
+                        key, value = line.strip().split("=", 1)
+                        os_info[key] = value.strip('"')
+                name = os_info.get("NAME", "LxOS")
+                version = os_info.get("VERSION", "")
+                return "LxOS", f"{name} {version}".strip()
+        else:
+            return "Unknown", platform.system()
+    except:
+        return "Unknown", platform.system()
+
+def get_kernel():
+    """Get kernel version"""
+    return platform.release()
+
+def get_cpu():
+    """Get CPU model"""
+    try:
+        with open("/proc/cpuinfo", "r") as f:
+            for line in f:
+                if "model name" in line:
+                    return line.split(":")[1].strip()
+    except:
+        return "Unknown"
+
+def get_memory():
+    """Get memory usage in MB"""
+    mem = psutil.virtual_memory()
+    used = mem.used // (1024 * 1024)
+    total = mem.total // (1024 * 1024)
+    return f"{used} MB / {total} MB"
+
+def get_uptime():
+    """Get system uptime"""
+    uptime_seconds = time.time() - psutil.boot_time()
+    days = int(uptime_seconds // (24 * 3600))
+    hours = int((uptime_seconds % (24 * 3600)) // 3600)
+    minutes = int((uptime_seconds % 3600) // 60)
+    return f"{days}d {hours}h {minutes}m"
+
+def get_packages():
+    """Get number of installed packages (LxOS placeholder)"""
+    # Placeholder: LxOS package manager unknown, return N/A
+    # Modify this if LxOS uses a specific package manager (e.g., pacman, dpkg)
+    return "N/A"
+
+def get_shell():
+    """Get current shell"""
+    return os.environ.get("SHELL", "Unknown").split("/")[-1]
+
+def get_terminal():
+    """Get current terminal"""
+    return os.environ.get("TERM", "Unknown")
+
+def main():
+    """Main function to display fetch-like info"""
+    os_name, os_version = get_os_info()
+    logo = LXOS_LOGO
+
+    # System info with Nerd Fonts symbols
+    info = [
+        (f"{Fore.CYAN} OS", f"{os_version}"),
+        (f"{Fore.CYAN}󰌽 Kernel", get_kernel()),
+        (f"{Fore.CYAN} CPU", get_cpu()),
+        (f"{Fore.CYAN} Memory", get_memory()),
+        (f"{Fore.CYAN}󱑂 Uptime", get_uptime()),
+        (f"{Fore.CYAN}󰏓 Packages", get_packages()),
+        (f"{Fore.CYAN} Shell", get_shell()),
+        (f"{Fore.CYAN} Terminal", get_terminal()),
+    ]
+
+    # Print logo and info side by side
+    max_logo_width = max(len(line) for line in logo)
+    for i, logo_line in enumerate(logo):
+        if i < len(info):
+            label, value = info[i]
+            # Align labels and values with fixed width
+            print(f"{logo_line:<{max_logo_width}}  {label}{Style.RESET_ALL}: {Fore.WHITE}{value}{Style.RESET_ALL}")
+        else:
+            print(logo_line)
+
+if __name__ == "__main__":
+    main()
